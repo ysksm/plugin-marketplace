@@ -1,0 +1,31 @@
+{
+  "id": "chrome-devtools-mcp",
+  "name": "Chrome DevTools MCP",
+  "version": "1.0.0",
+  "description": "Connect Claude Code to Chrome DevTools Protocol for DOM inspection, console logs, network monitoring, and screenshots",
+  "author": {
+    "name": "Claude Plugins",
+    "url": "https://github.com/ysksm/plugin-marketplace"
+  },
+  "category": "developer-tools",
+  "tags": ["chrome", "devtools", "debugging", "browser", "DOM", "network"],
+  "mcp": {
+    "command": "npx",
+    "args": ["-y", "@claude-plugins/chrome-devtools-mcp"],
+    "env": {
+      "CDP_HOST": "localhost",
+      "CDP_PORT": "9222"
+    }
+  },
+  "requirements": ["Chrome with --remote-debugging-port=9222"],
+  "tools": [
+    "devtools_get_console_logs",
+    "devtools_evaluate",
+    "devtools_query_selector",
+    "devtools_get_network_requests",
+    "devtools_take_screenshot",
+    "devtools_get_page_info",
+    "devtools_navigate",
+    "devtools_click"
+  ]
+}

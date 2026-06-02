@@ -1,0 +1,14 @@
+{
+  "name": "claude-plugin-marketplace",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "marketplace",
+    "plugins/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=marketplace",
+    "build": "npm run build --workspace=marketplace && npm run build --workspace=plugins/chrome-devtools-mcp",
+    "install:all": "npm install --legacy-peer-deps"
+  }
+}

@@ -1,0 +1,301 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-06-02T00:00:00Z",
+  "plugins": [
+    {
+      "id": "chrome-devtools-mcp",
+      "name": "Chrome DevTools MCP",
+      "slug": "chrome-devtools-mcp",
+      "description": "Connect Claude Code to Chrome DevTools Protocol for DOM inspection, console logs, network monitoring, and screenshots",
+      "version": "1.0.0",
+      "author": {
+        "name": "Claude Plugins",
+        "url": "https://github.com/ysksm/plugin-marketplace"
+      },
+      "category": "developer-tools",
+      "tags": ["chrome", "devtools", "debugging", "browser", "DOM", "network", "CDP"],
+      "installCommand": "claude mcp add chrome-devtools npx @claude-plugins/chrome-devtools-mcp",
+      "githubUrl": "https://github.com/ysksm/plugin-marketplace/tree/main/plugins/chrome-devtools-mcp",
+      "npmPackage": "@claude-plugins/chrome-devtools-mcp",
+      "icon": "🔍",
+      "mcp": {
+        "command": "npx",
+        "args": ["-y", "@claude-plugins/chrome-devtools-mcp"],
+        "env": {
+          "CDP_HOST": "localhost",
+          "CDP_PORT": "9222"
+        }
+      },
+      "requirements": ["Chrome with --remote-debugging-port=9222"],
+      "tools": [
+        "devtools_get_console_logs",
+        "devtools_evaluate",
+        "devtools_query_selector",
+        "devtools_get_network_requests",
+        "devtools_take_screenshot",
+        "devtools_get_page_info",
+        "devtools_navigate",
+        "devtools_click"
+      ],
+      "stats": {
+        "downloads": 12847,
+        "stars": 423,
+        "lastUpdated": "2026-05-28"
+      },
+      "featured": true,
+      "verified": true
+    },
+    {
+      "id": "github-mcp",
+      "name": "GitHub MCP",
+      "slug": "github-mcp",
+      "description": "Full GitHub integration — manage issues, PRs, repos, and code search directly from Claude Code.",
+      "version": "2.1.0",
+      "author": {
+        "name": "Anthropic Community",
+        "url": "https://github.com/anthropics"
+      },
+      "category": "developer-tools",
+      "tags": ["github", "git", "pr", "issues", "code-review", "devops"],
+      "installCommand": "claude mcp add github npx @claude-plugins/github-mcp",
+      "npmPackage": "@claude-plugins/github-mcp",
+      "icon": "🐙",
+      "mcp": {
+        "command": "npx",
+        "args": ["-y", "@claude-plugins/github-mcp"],
+        "env": {
+          "GITHUB_TOKEN": "your_github_token"
+        }
+      },
+      "tools": [
+        "github_search_code",
+        "github_get_file",
+        "github_create_issue",
+        "github_create_pr",
+        "github_list_prs",
+        "github_merge_pr",
+        "github_get_commit",
+        "github_list_repos"
+      ],
+      "stats": {
+        "downloads": 58920,
+        "stars": 1204,
+        "lastUpdated": "2026-05-30"
+      },
+      "featured": true,
+      "verified": true
+    },
+    {
+      "id": "filesystem-mcp",
+      "name": "Filesystem MCP",
+      "slug": "filesystem-mcp",
+      "description": "Enhanced filesystem access with glob patterns, file watching, batch operations, and archive support.",
+      "version": "1.3.2",
+      "author": {
+        "name": "MCP Community",
+        "url": "https://github.com/mcp-community"
+      },
+      "category": "productivity",
+      "tags": ["filesystem", "files", "glob", "archive", "batch", "productivity"],
+      "installCommand": "claude mcp add filesystem npx @claude-plugins/filesystem-mcp",
+      "npmPackage": "@claude-plugins/filesystem-mcp",
+      "icon": "📁",
+      "mcp": {
+        "command": "npx",
+        "args": ["-y", "@claude-plugins/filesystem-mcp"],
+        "env": {
+          "FS_ROOT": "/home/user"
+        }
+      },
+      "stats": {
+        "downloads": 34100,
+        "stars": 678,
+        "lastUpdated": "2026-05-15"
+      },
+      "featured": false,
+      "verified": true
+    },
+    {
+      "id": "postgres-mcp",
+      "name": "PostgreSQL MCP",
+      "slug": "postgres-mcp",
+      "description": "Query, inspect, and manage PostgreSQL databases — schema exploration, query execution, and migrations.",
+      "version": "1.1.0",
+      "author": {
+        "name": "DataTools",
+        "url": "https://github.com/datatools-mcp"
+      },
+      "category": "data",
+      "tags": ["postgres", "sql", "database", "query", "schema", "migrations"],
+      "installCommand": "claude mcp add postgres npx @claude-plugins/postgres-mcp",
+      "npmPackage": "@claude-plugins/postgres-mcp",
+      "icon": "🐘",
+      "mcp": {
+        "command": "npx",
+        "args": ["-y", "@claude-plugins/postgres-mcp"],
+        "env": {
+          "DATABASE_URL": "postgresql://localhost:5432/mydb"
+        }
+      },
+      "stats": {
+        "downloads": 21350,
+        "stars": 512,
+        "lastUpdated": "2026-04-20"
+      },
+      "featured": false,
+      "verified": true
+    },
+    {
+      "id": "playwright-mcp",
+      "name": "Playwright MCP",
+      "slug": "playwright-mcp",
+      "description": "Browser automation and end-to-end testing with Playwright — navigate, click, fill forms, and assert UI state.",
+      "version": "1.4.1",
+      "author": {
+        "name": "QA Tools",
+        "url": "https://github.com/qa-tools-mcp"
+      },
+      "category": "testing",
+      "tags": ["playwright", "testing", "browser", "automation", "e2e", "selenium"],
+      "installCommand": "claude mcp add playwright npx @claude-plugins/playwright-mcp",
+      "npmPackage": "@claude-plugins/playwright-mcp",
+      "icon": "🎭",
+      "mcp": {
+        "command": "npx",
+        "args": ["-y", "@claude-plugins/playwright-mcp"],
+        "env": {
+          "PW_BROWSER": "chromium"
+        }
+      },
+      "stats": {
+        "downloads": 18760,
+        "stars": 389,
+        "lastUpdated": "2026-05-10"
+      },
+      "featured": true,
+      "verified": true
+    },
+    {
+      "id": "openai-mcp",
+      "name": "OpenAI MCP",
+      "slug": "openai-mcp",
+      "description": "Access OpenAI APIs — GPT-4, embeddings, DALL-E image generation, Whisper transcription from Claude Code.",
+      "version": "1.2.0",
+      "author": {
+        "name": "AI Integrations",
+        "url": "https://github.com/ai-integrations-mcp"
+      },
+      "category": "ai",
+      "tags": ["openai", "gpt", "dall-e", "whisper", "embeddings", "ai"],
+      "installCommand": "claude mcp add openai npx @claude-plugins/openai-mcp",
+      "npmPackage": "@claude-plugins/openai-mcp",
+      "icon": "🤖",
+      "mcp": {
+        "command": "npx",
+        "args": ["-y", "@claude-plugins/openai-mcp"],
+        "env": {
+          "OPENAI_API_KEY": "sk-your-api-key"
+        }
+      },
+      "stats": {
+        "downloads": 29400,
+        "stars": 601,
+        "lastUpdated": "2026-05-22"
+      },
+      "featured": false,
+      "verified": false
+    },
+    {
+      "id": "datadog-mcp",
+      "name": "Datadog MCP",
+      "slug": "datadog-mcp",
+      "description": "Query Datadog metrics, logs, and monitors — triage incidents and investigate performance issues with AI assistance.",
+      "version": "0.9.2",
+      "author": {
+        "name": "Ops Tooling",
+        "url": "https://github.com/ops-tooling-mcp"
+      },
+      "category": "monitoring",
+      "tags": ["datadog", "monitoring", "metrics", "logs", "apm", "observability"],
+      "installCommand": "claude mcp add datadog npx @claude-plugins/datadog-mcp",
+      "npmPackage": "@claude-plugins/datadog-mcp",
+      "icon": "📊",
+      "mcp": {
+        "command": "npx",
+        "args": ["-y", "@claude-plugins/datadog-mcp"],
+        "env": {
+          "DD_API_KEY": "your_dd_api_key",
+          "DD_APP_KEY": "your_dd_app_key",
+          "DD_SITE": "datadoghq.com"
+        }
+      },
+      "stats": {
+        "downloads": 9870,
+        "stars": 214,
+        "lastUpdated": "2026-03-14"
+      },
+      "featured": false,
+      "verified": false
+    },
+    {
+      "id": "linear-mcp",
+      "name": "Linear MCP",
+      "slug": "linear-mcp",
+      "description": "Manage Linear issues and projects — create tasks, update statuses, query the backlog, and track cycles.",
+      "version": "1.0.4",
+      "author": {
+        "name": "Productivity Plugins",
+        "url": "https://github.com/productivity-plugins-mcp"
+      },
+      "category": "productivity",
+      "tags": ["linear", "project-management", "issues", "sprints", "tasks", "agile"],
+      "installCommand": "claude mcp add linear npx @claude-plugins/linear-mcp",
+      "npmPackage": "@claude-plugins/linear-mcp",
+      "icon": "📋",
+      "mcp": {
+        "command": "npx",
+        "args": ["-y", "@claude-plugins/linear-mcp"],
+        "env": {
+          "LINEAR_API_KEY": "your_linear_api_key"
+        }
+      },
+      "stats": {
+        "downloads": 15620,
+        "stars": 330,
+        "lastUpdated": "2026-05-01"
+      },
+      "featured": false,
+      "verified": true
+    },
+    {
+      "id": "redis-mcp",
+      "name": "Redis MCP",
+      "slug": "redis-mcp",
+      "description": "Interact with Redis — get/set keys, inspect data structures, monitor pub/sub, and analyze memory usage.",
+      "version": "1.1.1",
+      "author": {
+        "name": "DataTools",
+        "url": "https://github.com/datatools-mcp"
+      },
+      "category": "data",
+      "tags": ["redis", "cache", "key-value", "pubsub", "database", "nosql"],
+      "installCommand": "claude mcp add redis npx @claude-plugins/redis-mcp",
+      "npmPackage": "@claude-plugins/redis-mcp",
+      "icon": "⚡",
+      "mcp": {
+        "command": "npx",
+        "args": ["-y", "@claude-plugins/redis-mcp"],
+        "env": {
+          "REDIS_URL": "redis://localhost:6379"
+        }
+      },
+      "stats": {
+        "downloads": 11240,
+        "stars": 198,
+        "lastUpdated": "2026-04-05"
+      },
+      "featured": false,
+      "verified": false
+    }
+  ]
+}
