@@ -1,0 +1,5 @@
+{
+  "name": "test-runner-plugin",
+  "description": "Skills for running tests and checking coverage",
+  "version": "1.0.0"
+}

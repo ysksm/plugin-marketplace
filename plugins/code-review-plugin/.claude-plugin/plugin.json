@@ -1,0 +1,5 @@
+{
+  "name": "code-review-plugin",
+  "description": "Adds a skill for reviewing code quality, security, and performance",
+  "version": "1.0.0"
+}
