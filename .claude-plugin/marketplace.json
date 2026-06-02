@@ -4,8 +4,7 @@
   "description": "A collection of useful Claude Code plugins for developers",
   "version": "1.0.0",
   "owner": {
-    "name": "ysksm",
-    "email": "ka.sa.ma.123@gmail.com"
+    "name": "ysksm"
   },
   "metadata": {
     "pluginRoot": "./plugins"
