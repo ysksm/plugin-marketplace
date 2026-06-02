@@ -1,0 +1,47 @@
+{
+  "$schema": "https://claude.ai/schemas/marketplace.json",
+  "name": "plugin-marketplace",
+  "description": "A collection of useful Claude Code plugins for developers",
+  "version": "1.0.0",
+  "owner": {
+    "name": "ysksm"
+  },
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "code-review-plugin",
+      "source": "./plugins/code-review-plugin",
+      "description": "Adds a skill for reviewing code quality, security, and performance",
+      "version": "1.0.0",
+      "author": {
+        "name": "ysksm"
+      },
+      "category": "quality",
+      "keywords": ["code-review", "quality", "security", "performance"]
+    },
+    {
+      "name": "git-helper-plugin",
+      "source": "./plugins/git-helper-plugin",
+      "description": "Git workflow helpers: commit summaries and branch cleanup",
+      "version": "1.0.0",
+      "author": {
+        "name": "ysksm"
+      },
+      "category": "productivity",
+      "keywords": ["git", "workflow", "productivity"]
+    },
+    {
+      "name": "test-runner-plugin",
+      "source": "./plugins/test-runner-plugin",
+      "description": "Skills for running tests and checking coverage",
+      "version": "1.0.0",
+      "author": {
+        "name": "ysksm"
+      },
+      "category": "testing",
+      "keywords": ["testing", "coverage", "quality"]
+    }
+  ]
+}
