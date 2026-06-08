@@ -231,7 +231,7 @@ export interface IFooRepository {
   findAll(): Promise<FooAggregate[]>
   findById(id: FooId): Promise<FooAggregate | null>    // 見つからない場合は null（throw しない）
   findByTitle(title: FooTitle): Promise<FooAggregate | null>
-  create(/* VO を受け取る */): Promise<FooAggregate>
+  create(title: FooTitle): Promise<FooAggregate>          // 引数は VO（プリミティブ不可）
   update(id: FooId, params: UpdateFooAggregateParams): Promise<FooAggregate>
   delete(id: FooId): Promise<void>
 }
