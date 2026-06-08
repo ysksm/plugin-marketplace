@@ -1,0 +1,5 @@
+{
+  "name": "ddd-plugin",
+  "description": "DDD domain layer implementation guide: brand types, companion objects, Value Object / Entity / Aggregate / Domain Service patterns",
+  "version": "1.0.0"
+}

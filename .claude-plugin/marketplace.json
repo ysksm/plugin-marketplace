@@ -42,6 +42,17 @@
       },
       "category": "testing",
       "keywords": ["testing", "coverage", "quality"]
+    },
+    {
+      "name": "ddd-plugin",
+      "source": "./plugins/ddd-plugin",
+      "description": "DDD domain layer implementation guide: brand types, companion objects, Value Object / Entity / Aggregate / Domain Service patterns",
+      "version": "1.0.0",
+      "author": {
+        "name": "ysksm"
+      },
+      "category": "quality",
+      "keywords": ["ddd", "domain", "value-object", "entity", "aggregate", "typescript"]
     }
   ]
 }
