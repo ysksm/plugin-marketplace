@@ -53,6 +53,10 @@ node scripts/generate-viewer.mjs domain-model.json --out-dir docs/architecture
 node scripts/analyze.mjs ./src --config ddd-viz.config.json
 ```
 
+## スキルを使わずプロンプトとして使う
+
+プラグイン / スキルをインストールできない環境では、[prompts/visualize-domain.prompt.md](../../prompts/visualize-domain.prompt.md) の中身をそのまま AI アシスタントに貼り付ける。プロンプト内の手順でこのリポジトリからスクリプトを取得し、同じパイプラインを実行する。詳細は [prompts/README.md](../../prompts/README.md) を参照。
+
 ## インストール
 
 ```bash

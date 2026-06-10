@@ -22,6 +22,10 @@ Eric Evans『Domain-Driven Design』/ Vaughn Vernon『Implementing Domain-Driven
 
 関連プラグイン: [ddd-visualizer-plugin](../ddd-visualizer-plugin/README.md) — このスキルで実装したドメインを AST 解析して ER 図・レイヤー図として可視化する。
 
+## スキルを使わずプロンプトとして使う
+
+プラグイン / スキルをインストールできない環境では、[prompts/implement-domain.prompt.md](../../prompts/implement-domain.prompt.md) の中身をそのまま AI アシスタントに貼り付けることで、このスキルと同等の規約で実装できる。詳細は [prompts/README.md](../../prompts/README.md) を参照。
+
 ## インストール
 
 ### 1. マーケットプレイスを登録する（初回のみ）
