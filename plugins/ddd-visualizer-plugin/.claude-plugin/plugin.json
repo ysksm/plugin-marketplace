@@ -1,0 +1,5 @@
+{
+  "name": "ddd-visualizer-plugin",
+  "description": "Visualize a TypeScript DDD codebase: AST analysis to a domain model JSON, interactive self-contained HTML viewer (layer view + ER view), and Mermaid markdown for PR attachments",
+  "version": "1.0.0"
+}

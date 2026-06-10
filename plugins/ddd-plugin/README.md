@@ -1,13 +1,26 @@
 # ddd-plugin
 
 TypeScript の DDD ドメイン層をクラスなしで実装するためのガイドスキル。
-ブランド型・コンパニオンオブジェクトパターンによる Value Object / Entity / Aggregate / Domain Service の実装規約を定義する。
+Eric Evans『Domain-Driven Design』/ Vaughn Vernon『Implementing Domain-Driven Design』の戦術的パターンを、
+ブランド型・コンパニオンオブジェクト・判別 Union・Result 型による関数型スタイルで実装する規約を定義する。
 
 ## スキル
 
 | スキル | 説明 |
 |--------|------|
-| `/implement-domain` | DDD ドメイン層の実装規約（ファイル命名・各パターンのテンプレート） |
+| `/implement-domain` | DDD ドメイン層の実装規約（ファイル命名・各パターンのテンプレート・レビューチェックリスト） |
+
+## v2.0.0 の主な内容
+
+- **Result 型による関数型エラーハンドリング** — ドメイン層から throw しない。エラーは判別 Union
+- **判別 Union による状態モデリング** — 不正な状態遷移を型エラーにする（make illegal states unrepresentable）
+- **Domain Event**（Vernon Ch.8）— 状態変更操作が `{ aggregate, events }` を返す
+- **Vernon の集約設計4原則**（IDDD Ch.10）— 小さい集約・ID 参照・結果整合性
+- **コレクション指向 Repository**（Vernon Ch.12）— `save`/`findById`/`nextId`。生成責務は Factory へ
+- **Specification パターン**（Evans Ch.10、任意採用）
+- **レビューチェックリスト** — 既存ドメイン層の監査にも使える
+
+関連プラグイン: [ddd-visualizer-plugin](../ddd-visualizer-plugin/README.md) — このスキルで実装したドメインを AST 解析して ER 図・レイヤー図として可視化する。
 
 ## インストール
 

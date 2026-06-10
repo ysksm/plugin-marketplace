@@ -1,5 +1,5 @@
 {
   "name": "ddd-plugin",
-  "description": "DDD domain layer implementation guide: brand types, companion objects, Value Object / Entity / Aggregate / Domain Service patterns",
-  "version": "1.0.0"
+  "description": "DDD domain layer implementation guide based on Evans / Vernon: brand types, companion objects, discriminated unions, Result-based error handling, Value Object / Entity / Aggregate / Domain Event / Domain Service patterns",
+  "version": "2.0.0"
 }
