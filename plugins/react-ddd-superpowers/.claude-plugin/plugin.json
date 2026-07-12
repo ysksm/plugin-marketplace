@@ -1,0 +1,5 @@
+{
+  "name": "react-ddd-superpowers",
+  "description": "Full DDD development workflow for React + TypeScript + Vite: spec clarification, domain design with brand types and companion objects (classes only for Repository), DI/DIP composition root, strict TDD, and adversarial review",
+  "version": "1.0.0"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "angular-ddd-superpowers",
+  "description": "Full DDD development workflow for Angular + TypeScript: spec clarification, domain design with brand types and companion objects (classes only for Repository and Angular components), DI/DIP via InjectionToken, strict TDD, and adversarial review",
+  "version": "1.0.0"
+}
