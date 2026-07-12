@@ -31,18 +31,27 @@ if (!modelFile) {
 const model = JSON.parse(fs.readFileSync(modelFile, 'utf8'))
 fs.mkdirSync(outDir, { recursive: true })
 
+// model.name はファイル名に使うため、パス区切り等を除去して basename 安全な形にする
+const safeName = path.basename(String(model.name ?? 'domain')).replace(/[^A-Za-z0-9._-]/g, '_').replace(/^\.+/, '') || 'domain'
+
 // ---------- ビューア HTML（モデル埋め込み） ----------
 const template = fs.readFileSync(templateFile, 'utf8')
 // </script> によるタグ早期終了を防ぐ
 const json = JSON.stringify(model).replace(/<\//g, '<\\/')
 const html = template.replace('/*__DOMAIN_MODEL__*/null', json)
-const htmlPath = path.join(outDir, `${model.name}-domain-viewer.html`)
+const htmlPath = path.join(outDir, `${safeName}-domain-viewer.html`)
 fs.writeFileSync(htmlPath, html)
 
 // ---------- Mermaid markdown ----------
 const LAYER_ORDER = ['presentation', 'application', 'domain', 'infrastructure', 'di', 'other']
 const LAYER_LABELS = { presentation: 'Presentation (UI)', application: 'Application', domain: 'Domain', infrastructure: 'Infrastructure', di: 'DI / Composition', other: 'Other' }
 const mmId = name => name.replace(/[^A-Za-z0-9_]/g, '_')
+// Mermaid の "..." ラベル内で構文を壊す文字をエスケープする
+const mmLabel = s => String(s).replace(/"/g, '#quot;').replace(/[\r\n]+/g, ' ')
+// classDiagram のメンバー名は識別子相当のみ許可（文字列リテラルキー等を無害化）
+const mmMember = s => String(s).replace(/[^A-Za-z0-9_$]/g, '_')
+// classDiagram のエッジラベル（`: label`）は引用符・コロン・改行を除去
+const mmEdgeLabel = s => String(s).replace(/["':\r\n]+/g, ' ').trim()
 const byName = id => id.split('#')[1]
 
 const mainNodes = model.nodes.filter(n => n.kind !== 'support-type')
@@ -62,8 +71,8 @@ for (const layer of LAYER_ORDER) {
     byCtx.get(c).push(n)
   }
   for (const [ctx, cn] of [...byCtx.entries()].sort()) {
-    if (ctx) flowLines.push(`    subgraph ${layer}_${mmId(ctx)}["${ctx}"]`)
-    for (const n of cn) flowLines.push(`    ${ctx ? '  ' : ''}${mmId(n.name)}["${n.name}"]`)
+    if (ctx) flowLines.push(`    subgraph ${layer}_${mmId(ctx)}["${mmLabel(ctx)}"]`)
+    for (const n of cn) flowLines.push(`    ${ctx ? '  ' : ''}${mmId(n.name)}["${mmLabel(n.name)}"]`)
     if (ctx) flowLines.push('    end')
   }
   flowLines.push('  end')
@@ -87,9 +96,9 @@ for (const n of domainNodes) {
   classLines.push(`  class ${mmId(n.name)} {`)
   classLines.push(`    <<${n.kind}>>`)
   for (const p of n.props.filter(p => !p.method).slice(0, 10)) {
-    classLines.push(`    +${p.type.replace(/[^A-Za-z0-9_\[\] |]/g, '')} ${p.name}`)
+    classLines.push(`    +${p.type.replace(/[^A-Za-z0-9_\[\] |]/g, '')} ${mmMember(p.name)}`)
   }
-  for (const m of (n.methods ?? []).slice(0, 10)) classLines.push(`    +${m}()`)
+  for (const m of (n.methods ?? []).slice(0, 10)) classLines.push(`    +${mmMember(m)}()`)
   classLines.push('  }')
 }
 const seenC = new Set()
@@ -100,7 +109,7 @@ for (const e of model.edges) {
   seenC.add(key)
   if (e.kind === 'import' && model.edges.some(o => o.kind === 'has' && o.from === e.from && o.to === e.to)) continue
   const arrow = e.kind === 'implements' ? '..|>' : e.kind === 'has' ? '-->' : '..>'
-  classLines.push(`  ${mmId(byName(e.from))} ${arrow} ${mmId(byName(e.to))}${e.label ? ` : ${e.label}` : ''}`)
+  classLines.push(`  ${mmId(byName(e.from))} ${arrow} ${mmId(byName(e.to))}${e.label ? ` : ${mmEdgeLabel(e.label)}` : ''}`)
 }
 classLines.push('```')
 
@@ -117,7 +126,7 @@ ${flowLines.join('\n')}
 
 ${classLines.join('\n')}
 `
-const mdPath = path.join(outDir, `${model.name}-domain-diagram.md`)
+const mdPath = path.join(outDir, `${safeName}-domain-diagram.md`)
 fs.writeFileSync(mdPath, md)
 
 console.log(`✔ ${htmlPath}`)

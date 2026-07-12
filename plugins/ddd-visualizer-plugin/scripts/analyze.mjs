@@ -198,9 +198,11 @@ for (const file of files) {
       const names = []
       const clause = stmt.importClause
       if (clause) {
-        if (clause.name) names.push(clause.name.text)
+        // named import はエイリアスではなくエクスポート元の名前で記録する（import { Foo as Bar } → Foo）
+        // default import / namespace import は名前でノード解決できないため names には入れず、
+        // エッジ構築側のフォールバック（モジュール代表ノードへの import エッジ）に委ねる
         if (clause.namedBindings && ts.isNamedImports(clause.namedBindings)) {
-          for (const el of clause.namedBindings.elements) names.push(el.name.text)
+          for (const el of clause.namedBindings.elements) names.push((el.propertyName ?? el.name).text)
         }
       }
       info.imports.push({ specifier: stmt.moduleSpecifier.text, resolved: resolved ? rel(resolved) : null, names })
@@ -337,11 +339,14 @@ for (const [relPath, info] of fileInfos) {
   // import エッジ
   for (const imp of info.imports) {
     if (!imp.resolved || !fileInfos.has(imp.resolved)) continue
+    let linked = false
     for (const name of imp.names) {
       const target = nodeById.get(`${imp.resolved}#${name}`)
-      if (target) addEdge(fromNode, target, 'import')
+      if (target) { addEdge(fromNode, target, 'import'); linked = true }
     }
-    if (imp.names.length === 0) addEdge(fromNode, primaryNode(imp.resolved), 'import')
+    // 名前が1つも解決できなかった場合（default / namespace import、re-export 経由等）でも
+    // モジュール代表ノードへの依存エッジは残してグラフを連結に保つ
+    if (!linked) addEdge(fromNode, primaryNode(imp.resolved), 'import')
   }
   // has エッジ（プロパティ型 → 既知ノード）と implements エッジ
   for (const ex of info.exports.values()) {

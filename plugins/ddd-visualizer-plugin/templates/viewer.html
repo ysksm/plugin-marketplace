@@ -146,7 +146,18 @@ function setupDrop() {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
     if (!f) return;
-    state.model = JSON.parse(await f.text());
+    let parsed;
+    try {
+      parsed = JSON.parse(await f.text());
+    } catch (err) {
+      $('#dropzone').textContent = `JSON を読み込めません（${err.message}）— analyze.mjs が出力した domain-model.json をドロップしてください`;
+      return;
+    }
+    if (!parsed || !Array.isArray(parsed.nodes) || !Array.isArray(parsed.edges)) {
+      $('#dropzone').textContent = 'domain-model.json の形式ではありません（nodes / edges がありません）— analyze.mjs の出力をドロップしてください';
+      return;
+    }
+    state.model = parsed;
     $('#dropzone').style.display = 'none';
     init();
   });
@@ -438,6 +449,12 @@ $('#btn-mermaid').addEventListener('click', () => {
 $('#mermaid-copy').addEventListener('click', () => navigator.clipboard?.writeText($('#mermaid-text').value));
 
 function mmId(name) { return name.replace(/[^A-Za-z0-9_]/g, '_'); }
+// Mermaid の "..." ラベル内で構文を壊す文字をエスケープする
+function mmLabel(s) { return String(s).replace(/"/g, '#quot;').replace(/[\r\n]+/g, ' '); }
+// classDiagram のメンバー名は識別子相当のみ許可（文字列リテラルキー等を無害化）
+function mmMember(s) { return String(s).replace(/[^A-Za-z0-9_$]/g, '_'); }
+// classDiagram のエッジラベル（`: label`）は引用符・コロン・改行を除去
+function mmEdgeLabel(s) { return String(s).replace(/["':\r\n]+/g, ' ').trim(); }
 function toMermaid() {
   const nodes = visibleNodes().filter(n => state.positions.has(n.id));
   const edges = visibleEdges(nodes);
@@ -447,13 +464,13 @@ function toMermaid() {
     for (const n of nodes) {
       lines.push(`  class ${mmId(n.name)} {`);
       lines.push(`    <<${n.kind}>>`);
-      for (const p of n.props.filter(p => !p.method).slice(0, 10)) lines.push(`    +${p.type.replace(/[^A-Za-z0-9_\[\] |]/g, '')} ${p.name}`);
-      for (const m of n.methods.slice(0, 10)) lines.push(`    +${m}()`);
+      for (const p of n.props.filter(p => !p.method).slice(0, 10)) lines.push(`    +${p.type.replace(/[^A-Za-z0-9_\[\] |]/g, '')} ${mmMember(p.name)}`);
+      for (const m of n.methods.slice(0, 10)) lines.push(`    +${mmMember(m)}()`);
       lines.push('  }');
     }
     for (const e of edges) {
       const arrow = e.kind === 'implements' ? '..|>' : e.kind === 'has' ? '-->' : '..>';
-      lines.push(`  ${mmId(byName(e.from))} ${arrow} ${mmId(byName(e.to))}${e.label ? ` : ${e.label}` : ''}`);
+      lines.push(`  ${mmId(byName(e.from))} ${arrow} ${mmId(byName(e.to))}${e.label ? ` : ${mmEdgeLabel(e.label)}` : ''}`);
     }
     lines.push('```');
     return lines.join('\n');
@@ -470,8 +487,8 @@ function toMermaid() {
       byCtx.get(c).push(n);
     }
     for (const [ctx, cn] of [...byCtx.entries()].sort()) {
-      if (ctx) lines.push(`    subgraph ${layer}_${mmId(ctx)}["${ctx}"]`);
-      for (const n of cn) lines.push(`    ${ctx ? '  ' : ''}${mmId(n.name)}["${n.name}"]`);
+      if (ctx) lines.push(`    subgraph ${layer}_${mmId(ctx)}["${mmLabel(ctx)}"]`);
+      for (const n of cn) lines.push(`    ${ctx ? '  ' : ''}${mmId(n.name)}["${mmLabel(n.name)}"]`);
       if (ctx) lines.push('    end');
     }
     lines.push('  end');
