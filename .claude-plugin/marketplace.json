@@ -64,6 +64,28 @@
       },
       "category": "quality",
       "keywords": ["ddd", "visualization", "er-diagram", "architecture", "mermaid", "ast", "typescript"]
+    },
+    {
+      "name": "react-ddd-superpowers",
+      "source": "./plugins/react-ddd-superpowers",
+      "description": "Full DDD development workflow for React + TypeScript + Vite: spec clarification, domain design with brand types and companion objects (classes only for Repository), DI/DIP composition root, strict TDD with Vitest, and adversarial review",
+      "version": "1.0.0",
+      "author": {
+        "name": "ysksm"
+      },
+      "category": "workflow",
+      "keywords": ["ddd", "react", "vite", "tdd", "adversarial-review", "dependency-injection", "workflow", "typescript"]
+    },
+    {
+      "name": "angular-ddd-superpowers",
+      "source": "./plugins/angular-ddd-superpowers",
+      "description": "Full DDD development workflow for Angular + TypeScript: spec clarification, domain design with brand types and companion objects (classes only for Repository and Angular components), DI/DIP via InjectionToken, strict TDD, and adversarial review",
+      "version": "1.0.0",
+      "author": {
+        "name": "ysksm"
+      },
+      "category": "workflow",
+      "keywords": ["ddd", "angular", "tdd", "adversarial-review", "dependency-injection", "injection-token", "workflow", "typescript"]
     }
   ]
 }
