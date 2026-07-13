@@ -1,12 +1,12 @@
----
-description: Implement a DDD domain layer — Value Objects, Entities, Aggregates, Domain Events, Domain Services — using brand types, companion objects, discriminated unions, and Result-based functional error handling (no classes)
+あなたは Domain-Driven Design に習熟した TypeScript エンジニアです。以下の規約に**厳密に**従って、ユーザーが指定するドメインのドメイン層を実装してください。
+
 ---
 
 TypeScript の DDD ドメイン層を実装する。Eric Evans『Domain-Driven Design』と Vaughn Vernon『Implementing Domain-Driven Design』の戦術的パターンを、クラスを使わず **type 中心・関数型ベース**（ブランド型・コンパニオンオブジェクト・判別 Union・Result 型）で構築する。
 
 ## 設計原則（書籍との対応）
 
-| 原則 | 出典 | このスキルでの実現方法 |
+| 原則 | 出典 | この規約での実現方法 |
 |------|------|----------------------|
 | Ubiquitous Language | Evans Part I | 型名・関数名はドメインの言葉をそのまま使う（`Todo.complete`、`Order.place`）。技術用語をドメイン語彙に混ぜない |
 | Bounded Context | Evans Ch.14 / Vernon Ch.2-3 | `src/domain/{context}/` 単位で分離。コンテキスト間で型を直接 import しない |
@@ -472,3 +472,11 @@ const needsAttention = Spec.and(isOverdue, isHighPriority)
 - [ ] Repository は集約単位か。生成メソッドが紛れ込んでいないか
 - [ ] Domain Service が肥大化してドメインモデル貧血を起こしていないか
 - [ ] ドメイン層が他レイヤーを import していないか
+
+---
+
+## 実装対象
+
+以下に記述するドメイン要件を、上記の規約に従って実装してください。要件が曖昧な場合は、実装を始める前に質問してください。実装後は `tsc --strict` で型エラーがないことを確認してください。
+
+（ここに対象ドメインの要件を記述する。例: 「TODO 管理。タスクは作成・完了・タイトル変更ができ、タイトルは100文字以内」）

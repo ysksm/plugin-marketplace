@@ -46,13 +46,46 @@
     {
       "name": "ddd-plugin",
       "source": "./plugins/ddd-plugin",
-      "description": "DDD domain layer implementation guide: brand types, companion objects, Value Object / Entity / Aggregate / Domain Service patterns",
+      "description": "DDD domain layer implementation guide based on Evans / Vernon: brand types, companion objects, discriminated unions, Result-based error handling, Value Object / Entity / Aggregate / Domain Event / Domain Service patterns",
+      "version": "2.0.0",
+      "author": {
+        "name": "ysksm"
+      },
+      "category": "quality",
+      "keywords": ["ddd", "domain", "value-object", "entity", "aggregate", "domain-event", "functional", "typescript"]
+    },
+    {
+      "name": "ddd-visualizer-plugin",
+      "source": "./plugins/ddd-visualizer-plugin",
+      "description": "Visualize a TypeScript DDD codebase: AST analysis, interactive HTML viewer (layer + ER views), Mermaid markdown for PR attachments",
       "version": "1.0.0",
       "author": {
         "name": "ysksm"
       },
       "category": "quality",
-      "keywords": ["ddd", "domain", "value-object", "entity", "aggregate", "typescript"]
+      "keywords": ["ddd", "visualization", "er-diagram", "architecture", "mermaid", "ast", "typescript"]
+    },
+    {
+      "name": "react-ddd-superpowers",
+      "source": "./plugins/react-ddd-superpowers",
+      "description": "Full DDD development workflow for React + TypeScript + Vite: spec clarification, domain design with brand types and companion objects (classes only for Repository), DI/DIP composition root, strict TDD with Vitest, and adversarial review",
+      "version": "1.0.0",
+      "author": {
+        "name": "ysksm"
+      },
+      "category": "workflow",
+      "keywords": ["ddd", "react", "vite", "tdd", "adversarial-review", "dependency-injection", "workflow", "typescript"]
+    },
+    {
+      "name": "angular-ddd-superpowers",
+      "source": "./plugins/angular-ddd-superpowers",
+      "description": "Full DDD development workflow for Angular + TypeScript: spec clarification, domain design with brand types and companion objects (classes only for Repository and Angular components), DI/DIP via InjectionToken, strict TDD, and adversarial review",
+      "version": "1.0.0",
+      "author": {
+        "name": "ysksm"
+      },
+      "category": "workflow",
+      "keywords": ["ddd", "angular", "tdd", "adversarial-review", "dependency-injection", "injection-token", "workflow", "typescript"]
     }
   ]
 }

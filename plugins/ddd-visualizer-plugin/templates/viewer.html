@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Domain Visualizer</title>
+<style>
+  :root {
+    --bg: #f6f8fa; --panel: #ffffff; --border: #d0d7de; --text: #1f2328; --muted: #656d76;
+    --presentation: #8250df; --application: #0969da; --domain: #1a7f37; --infrastructure: #bc4c00; --di: #6e7781; --other: #6e7781;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif; color: var(--text); background: var(--bg); display: flex; flex-direction: column; height: 100vh; }
+  header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: var(--panel); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  header h1 { font-size: 15px; margin: 0; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  .tabs { display: flex; gap: 4px; margin-left: 16px; }
+  .tabs button { border: 1px solid var(--border); background: var(--bg); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .tabs button.active { background: #0969da; color: #fff; border-color: #0969da; }
+  .actions { margin-left: auto; display: flex; gap: 6px; }
+  .actions button { border: 1px solid var(--border); background: var(--panel); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+  .actions button:hover { background: var(--bg); }
+  main { display: flex; flex: 1; min-height: 0; }
+  #sidebar { width: 230px; background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 10px; font-size: 12px; flex-shrink: 0; }
+  #sidebar h3 { font-size: 11px; text-transform: uppercase; color: var(--muted); margin: 12px 0 4px; }
+  #sidebar label { display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer; }
+  #sidebar input[type=text] { width: 100%; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  #canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+  #canvas { width: 100%; height: 100%; cursor: grab; }
+  #canvas.panning { cursor: grabbing; }
+  #detail { position: absolute; right: 12px; top: 12px; width: 300px; max-height: calc(100% - 24px); overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.08); display: none; }
+  #detail h2 { font-size: 14px; margin: 0 0 2px; }
+  #detail .kind { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  #detail table { width: 100%; border-collapse: collapse; }
+  #detail td { border-top: 1px solid var(--border); padding: 3px 4px; vertical-align: top; }
+  #detail td.t { color: var(--muted); font-family: ui-monospace, monospace; font-size: 11px; }
+  #detail .close { float: right; cursor: pointer; border: none; background: none; font-size: 14px; }
+  #detail .file { font-family: ui-monospace, monospace; font-size: 10px; color: var(--muted); word-break: break-all; }
+  .node rect { stroke-width: 1.2; rx: 6; }
+  .node text { pointer-events: none; }
+  .node { cursor: pointer; }
+  .node.dim, .edge.dim { opacity: 0.12; }
+  .edge path { fill: none; stroke-width: 1.3; }
+  .edge.import path { stroke: #8c959f; }
+  .edge.has path { stroke: #1a7f37; stroke-width: 1.6; }
+  .edge.implements path { stroke: #bc4c00; stroke-dasharray: 5 3; stroke-width: 1.6; }
+  .edge text { font-size: 9px; fill: var(--muted); }
+  .ctx-label { font-size: 11px; fill: var(--muted); font-weight: 600; }
+  .layer-label { font-size: 13px; font-weight: 700; }
+  .layer-band { fill: rgba(208,215,222,.18); }
+  dialog { border: 1px solid var(--border); border-radius: 8px; width: 640px; max-width: 90vw; }
+  dialog textarea { width: 100%; height: 320px; font-family: ui-monospace, monospace; font-size: 12px; }
+  #dropzone { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Domain Visualizer</h1>
+  <span class="sub" id="subtitle"></span>
+  <div class="tabs">
+    <button id="tab-layer" class="active">レイヤー図</button>
+    <button id="tab-er">ドメインモデル (ER)</button>
+  </div>
+  <div class="actions">
+    <button id="btn-fit">全体表示</button>
+    <button id="btn-svg">SVG 保存</button>
+    <button id="btn-mermaid">Mermaid 出力</button>
+  </div>
+</header>
+<main>
+  <div id="sidebar">
+    <input type="text" id="search" placeholder="検索 (名前で絞り込み)">
+    <h3>レイヤー</h3><div id="f-layers"></div>
+    <h3>コンテキスト</h3><div id="f-contexts"></div>
+    <h3>種別</h3><div id="f-kinds"></div>
+    <h3>エッジ</h3><div id="f-edges"></div>
+  </div>
+  <div id="canvas-wrap">
+    <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 1 L 9 5 L 0 9 z" fill="#8c959f"/>
+        </marker>
+      </defs>
+      <g id="viewport"></g>
+    </svg>
+    <div id="detail"></div>
+    <div id="dropzone" style="display:none">domain-model.json をここにドロップしてください</div>
+  </div>
+</main>
+<dialog id="mermaid-dialog">
+  <h3 style="margin-top:0">Mermaid（現在の表示内容） — GitHub PR にそのまま貼り付け可能</h3>
+  <textarea id="mermaid-text" readonly></textarea>
+  <div style="text-align:right; margin-top:8px">
+    <button id="mermaid-copy">コピー</button>
+    <button onclick="document.getElementById('mermaid-dialog').close()">閉じる</button>
+  </div>
+</dialog>
+<script>
+const MODEL = /*__DOMAIN_MODEL__*/null;
+
+const LAYER_ORDER = ['presentation', 'application', 'domain', 'infrastructure', 'di', 'other'];
+const LAYER_LABELS = { presentation: 'Presentation (UI)', application: 'Application', domain: 'Domain', infrastructure: 'Infrastructure', di: 'DI / Composition', other: 'Other' };
+const KIND_LABELS = {
+  'value-object': 'Value Object', 'entity': 'Entity', 'aggregate': 'Aggregate', 'domain-event': 'Domain Event',
+  'domain-service': 'Domain Service', 'repository-interface': 'Repository IF', 'domain-type': 'Domain Type',
+  'use-case': 'UseCase', 'application-service': 'App Service', 'repository-impl': 'Repository Impl',
+  'api-client': 'API Client', 'infrastructure': 'Infra', 'hook': 'Hook', 'component': 'Component',
+  'presentation': 'Presentation', 'di': 'DI', 'module': 'Module', 'support-type': '補助型 (Props/Params)',
+};
+const KIND_ORDER = ['aggregate','entity','value-object','domain-event','domain-service','repository-interface','domain-type','use-case','application-service','repository-impl','api-client','infrastructure','hook','component','presentation','di','module','support-type'];
+const ER_KINDS = ['aggregate','entity','value-object','domain-event','domain-service','repository-interface','domain-type','support-type'];
+
+const state = {
+  model: MODEL,
+  view: 'layer',                 // 'layer' | 'er'
+  layers: new Set(), contexts: new Set(), kinds: new Set(),
+  edgeKinds: new Set(['import','has','implements']),
+  search: '',
+  selected: null,
+  positions: new Map(),          // node.id -> {x,y,w,h}
+};
+
+const $ = s => document.querySelector(s);
+const svgNS = 'http://www.w3.org/2000/svg';
+const layerColor = l => getComputedStyle(document.documentElement).getPropertyValue('--' + (LAYER_ORDER.includes(l) ? l : 'other')).trim();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function init() {
+  if (!state.model) { $('#dropzone').style.display = 'flex'; setupDrop(); return; }
+  const m = state.model;
+  $('#title').textContent = m.name + ' — Domain Visualizer';
+  $('#subtitle').textContent = `${m.nodes.length} nodes / ${m.edges.length} edges`;
+  state.layers = new Set(m.layers);
+  state.contexts = new Set([...m.contexts, '(none)']);
+  state.kinds = new Set(m.nodes.map(n => n.kind));
+  state.kinds.delete('support-type'); // デフォルトでは補助型を隠してノイズを減らす
+  buildFilters();
+  render();
+}
+
+function setupDrop() {
+  const wrap = $('#canvas-wrap');
+  wrap.addEventListener('dragover', e => e.preventDefault());
+  wrap.addEventListener('drop', async e => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (!f) return;
+    let parsed;
+    try {
+      parsed = JSON.parse(await f.text());
+    } catch (err) {
+      $('#dropzone').textContent = `JSON を読み込めません（${err.message}）— analyze.mjs が出力した domain-model.json をドロップしてください`;
+      return;
+    }
+    if (!parsed || !Array.isArray(parsed.nodes) || !Array.isArray(parsed.edges)) {
+      $('#dropzone').textContent = 'domain-model.json の形式ではありません（nodes / edges がありません）— analyze.mjs の出力をドロップしてください';
+      return;
+    }
+    state.model = parsed;
+    $('#dropzone').style.display = 'none';
+    init();
+  });
+}
+
+function checkbox(parent, label, checked, color, onchange) {
+  const l = document.createElement('label');
+  const c = document.createElement('input');
+  c.type = 'checkbox'; c.checked = checked;
+  c.addEventListener('change', () => { onchange(c.checked); render(); });
+  l.appendChild(c);
+  if (color) { const s = document.createElement('span'); s.className = 'swatch'; s.style.background = color; l.appendChild(s); }
+  l.appendChild(document.createTextNode(label));
+  parent.appendChild(l);
+}
+
+function buildFilters() {
+  const m = state.model;
+  const fl = $('#f-layers'); fl.innerHTML = '';
+  for (const layer of m.layers) {
+    checkbox(fl, LAYER_LABELS[layer] ?? layer, state.layers.has(layer), layerColor(layer),
+      on => on ? state.layers.add(layer) : state.layers.delete(layer));
+  }
+  const fc = $('#f-contexts'); fc.innerHTML = '';
+  for (const ctx of [...m.contexts, '(none)']) {
+    checkbox(fc, ctx, state.contexts.has(ctx), null,
+      on => on ? state.contexts.add(ctx) : state.contexts.delete(ctx));
+  }
+  const fk = $('#f-kinds'); fk.innerHTML = '';
+  const kinds = [...new Set(m.nodes.map(n => n.kind))].sort((a,b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b));
+  for (const kind of kinds) {
+    checkbox(fk, KIND_LABELS[kind] ?? kind, state.kinds.has(kind), null,
+      on => on ? state.kinds.add(kind) : state.kinds.delete(kind));
+  }
+  const fe = $('#f-edges'); fe.innerHTML = '';
+  for (const [k, label] of [['import','import 依存'],['has','保持 (has)'],['implements','implements']]) {
+    checkbox(fe, label, state.edgeKinds.has(k), null,
+      on => on ? state.edgeKinds.add(k) : state.edgeKinds.delete(k));
+  }
+  $('#search').addEventListener('input', e => { state.search = e.target.value.toLowerCase(); render(); });
+}
+
+function visibleNodes() {
+  return state.model.nodes.filter(n => {
+    if (state.view === 'er' && (n.layer !== 'domain' || !ER_KINDS.includes(n.kind))) return false;
+    if (!state.layers.has(n.layer)) return false;
+    if (!state.contexts.has(n.context ?? '(none)')) return false;
+    if (!state.kinds.has(n.kind)) return false;
+    if (state.search && !n.name.toLowerCase().includes(state.search)) return false;
+    return true;
+  });
+}
+function visibleEdges(nodes) {
+  const ids = new Set(nodes.map(n => n.id));
+  return state.model.edges.filter(e => ids.has(e.from) && ids.has(e.to) && state.edgeKinds.has(e.kind))
+    // レイヤー図では has は冗長（import と重複しがち）なので ER のみデフォルト表示でも、ここではフィルタに従う
+    .filter(e => !(state.view === 'layer' && e.kind === 'has' && state.edgeKinds.has('import')
+      && state.model.edges.some(o => o.kind === 'import' && o.from === e.from && o.to === e.to)));
+}
+
+// ---------- レイアウト ----------
+const NODE_W = 190, NODE_H = 32, PROP_H = 15, GAP_Y = 14, COL_GAP = 130, CTX_GAP = 34, PAD = 50;
+
+function nodeHeight(n) {
+  if (state.view !== 'er') return NODE_H;
+  const rows = Math.min(n.props.filter(p => !p.method).length, 8) + (n.unionMembers ? 1 : 0);
+  return NODE_H + (rows > 0 ? rows * PROP_H + 6 : 0);
+}
+
+function layout(nodes) {
+  state.positions = new Map();
+  const cols = state.view === 'er'
+    ? [['aggregate'],['entity'],['value-object'],['domain-event','domain-service','repository-interface','domain-type','support-type']]
+    : LAYER_ORDER.filter(l => state.layers.has(l)).map(l => [l]);
+  const colOf = n => state.view === 'er'
+    ? cols.findIndex(c => c.includes(n.kind))
+    : cols.findIndex(c => c.includes(n.layer));
+  const byCol = cols.map(() => []);
+  for (const n of nodes) { const c = colOf(n); if (c >= 0) byCol[c].push(n); }
+  const colInfo = [];
+  let x = PAD;
+  for (let c = 0; c < cols.length; c++) {
+    const colNodes = byCol[c];
+    if (colNodes.length === 0) { colInfo.push(null); continue; }
+    // コンテキストでグループ化
+    const groups = new Map();
+    for (const n of colNodes) {
+      const g = n.context ?? '(none)';
+      if (!groups.has(g)) groups.set(g, []);
+      groups.get(g).push(n);
+    }
+    let y = PAD + 40;
+    const groupRects = [];
+    for (const [ctx, gNodes] of [...groups.entries()].sort()) {
+      gNodes.sort((a,b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || a.name.localeCompare(b.name));
+      const gy = y;
+      y += 18; // context label
+      for (const n of gNodes) {
+        const h = nodeHeight(n);
+        state.positions.set(n.id, { x, y, w: NODE_W, h });
+        y += h + GAP_Y;
+      }
+      groupRects.push({ ctx, y: gy, h: y - gy });
+      y += CTX_GAP;
+    }
+    colInfo.push({ x, w: NODE_W, label: state.view === 'er' ? (KIND_LABELS[cols[c][0]] ?? cols[c][0]) : (LAYER_LABELS[cols[c][0]] ?? cols[c][0]), layer: cols[c][0], height: y, groups: groupRects });
+    x += NODE_W + COL_GAP;
+  }
+  return colInfo;
+}
+
+// ---------- 描画 ----------
+function el(name, attrs = {}, parent) {
+  const e = document.createElementNS(svgNS, name);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+function render() {
+  if (!state.model) return;
+  const vp = $('#viewport');
+  vp.innerHTML = '';
+  const nodes = visibleNodes();
+  const colInfo = layout(nodes);
+  const edges = visibleEdges(nodes.filter(n => state.positions.has(n.id)));
+  const maxY = Math.max(200, ...[...state.positions.values()].map(p => p.y + p.h)) + PAD;
+
+  // カラム帯 + ラベル
+  for (const col of colInfo) {
+    if (!col) continue;
+    el('rect', { x: col.x - 18, y: 16, width: col.w + 36, height: maxY - 16, class: 'layer-band' }, vp);
+    const t = el('text', { x: col.x + col.w / 2, y: 38, 'text-anchor': 'middle', class: 'layer-label', fill: layerColor(col.layer) }, vp);
+    t.textContent = col.label;
+    for (const g of col.groups) {
+      if (g.ctx === '(none)') continue;
+      const ct = el('text', { x: col.x, y: g.y + 12, class: 'ctx-label' }, vp);
+      ct.textContent = '◆ ' + g.ctx;
+    }
+  }
+
+  // エッジ
+  const edgeEls = [];
+  for (const e of edges) {
+    const a = state.positions.get(e.from), b = state.positions.get(e.to);
+    if (!a || !b) continue;
+    const g = el('g', { class: 'edge ' + e.kind, 'data-from': e.from, 'data-to': e.to }, vp);
+    let d;
+    if (Math.abs(a.x - b.x) < 1) { // 同一カラム: 左側を回るループ
+      const x0 = a.x, y0 = a.y + a.h / 2, y1 = b.y + b.h / 2;
+      d = `M ${x0} ${y0} C ${x0 - 60} ${y0}, ${x0 - 60} ${y1}, ${x0 - 2} ${y1}`;
+    } else {
+      const fromRight = b.x > a.x;
+      const x0 = fromRight ? a.x + a.w : a.x, y0 = a.y + a.h / 2;
+      const x1 = fromRight ? b.x - 2 : b.x + b.w + 2, y1 = b.y + b.h / 2;
+      const mx = (x0 + x1) / 2;
+      d = `M ${x0} ${y0} C ${mx} ${y0}, ${mx} ${y1}, ${x1} ${y1}`;
+    }
+    const p = el('path', { d, 'marker-end': 'url(#arrow)' }, g);
+    if (e.label && state.view === 'er') {
+      const a2 = state.positions.get(e.from), b2 = state.positions.get(e.to);
+      const t = el('text', { x: (a2.x + a2.w + b2.x) / 2, y: (a2.y + a2.h / 2 + b2.y + b2.h / 2) / 2 - 4, 'text-anchor': 'middle' }, g);
+      t.textContent = e.label;
+    }
+    edgeEls.push(g);
+  }
+
+  // ノード
+  for (const n of nodes) {
+    const pos = state.positions.get(n.id);
+    if (!pos) continue;
+    const g = el('g', { class: 'node', 'data-id': n.id, transform: `translate(${pos.x},${pos.y})` }, vp);
+    const color = layerColor(n.layer);
+    el('rect', { width: pos.w, height: pos.h, fill: '#fff', stroke: color }, g);
+    el('rect', { width: 4, height: pos.h, fill: color }, g);
+    const name = el('text', { x: 12, y: 15, 'font-size': 12.5, 'font-weight': 600 }, g);
+    name.textContent = n.name + (n.brand ? ' ®' : '');
+    const kind = el('text', { x: 12, y: 27, 'font-size': 9, fill: '#656d76' }, g);
+    kind.textContent = KIND_LABELS[n.kind] ?? n.kind;
+    if (state.view === 'er') {
+      let y = NODE_H + 10;
+      el('line', { x1: 0, y1: NODE_H + 1, x2: pos.w, y2: NODE_H + 1, stroke: '#d0d7de' }, g);
+      for (const p of n.props.filter(p => !p.method).slice(0, 8)) {
+        const t = el('text', { x: 12, y, 'font-size': 10, 'font-family': 'ui-monospace, monospace' }, g);
+        t.textContent = `${p.name}${p.optional ? '?' : ''}: ${p.type.length > 18 ? p.type.slice(0, 17) + '…' : p.type}`;
+        y += PROP_H;
+      }
+      if (n.unionMembers) {
+        const t = el('text', { x: 12, y, 'font-size': 10, 'font-family': 'ui-monospace, monospace', fill: '#8250df' }, g);
+        t.textContent = '= ' + n.unionMembers.map(u => `'${u}'`).join(' | ').slice(0, 26);
+      }
+    }
+    g.addEventListener('click', ev => { ev.stopPropagation(); select(n, edgeEls); });
+  }
+  $('#canvas').addEventListener('click', () => clearSelect());
+  if (state.selected && nodes.some(n => n.id === state.selected)) {
+    select(nodes.find(n => n.id === state.selected), edgeEls, true);
+  } else {
+    state.selected = null;
+  }
+  fit();
+}
+
+function select(n, edgeEls, keep = false) {
+  state.selected = n.id;
+  const related = new Set([n.id]);
+  for (const g of edgeEls ?? document.querySelectorAll('.edge')) {
+    const from = g.dataset.from, to = g.dataset.to;
+    const hit = from === n.id || to === n.id;
+    g.classList.toggle('dim', !hit);
+    if (hit) { related.add(from); related.add(to); }
+  }
+  for (const g of document.querySelectorAll('.node')) {
+    g.classList.toggle('dim', !related.has(g.dataset.id));
+  }
+  const d = $('#detail');
+  d.style.display = 'block';
+  const ins = state.model.edges.filter(e => e.to === n.id).map(e => e.from.split('#')[1]);
+  const outs = state.model.edges.filter(e => e.from === n.id).map(e => e.to.split('#')[1]);
+  d.innerHTML = `
+    <button class="close" onclick="clearSelect()">✕</button>
+    <h2>${esc(n.name)}</h2>
+    <div class="kind">${esc(KIND_LABELS[n.kind] ?? n.kind)} / ${esc(n.layer)}${n.context ? ' / ' + esc(n.context) : ''}${n.brand ? ' / brand型' : ''}</div>
+    <div class="file">${esc(n.file)}</div>
+    ${n.unionMembers ? `<p><b>Union:</b> <code>${n.unionMembers.map(esc).join(' | ')}</code></p>` : ''}
+    ${n.props.length ? `<h3 style="font-size:11px;margin:8px 0 2px">プロパティ</h3><table>${n.props.map(p => `<tr><td>${esc(p.name)}${p.optional ? '?' : ''}</td><td class="t">${esc(p.type)}</td></tr>`).join('')}</table>` : ''}
+    ${n.methods.length ? `<h3 style="font-size:11px;margin:8px 0 2px">操作</h3><div>${n.methods.map(m => `<code>${esc(m)}</code>`).join(' ')}</div>` : ''}
+    ${outs.length ? `<h3 style="font-size:11px;margin:8px 0 2px">依存先 →</h3><div>${[...new Set(outs)].map(esc).join(', ')}</div>` : ''}
+    ${ins.length ? `<h3 style="font-size:11px;margin:8px 0 2px">← 参照元</h3><div>${[...new Set(ins)].map(esc).join(', ')}</div>` : ''}
+  `;
+}
+function clearSelect() {
+  state.selected = null;
+  document.querySelectorAll('.dim').forEach(e => e.classList.remove('dim'));
+  $('#detail').style.display = 'none';
+}
+window.clearSelect = clearSelect;
+
+// ---------- パン / ズーム ----------
+let vb = { x: 0, y: 0, w: 1200, h: 800 };
+function applyVB() { $('#canvas').setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); }
+function fit() {
+  const ps = [...state.positions.values()];
+  if (ps.length === 0) return;
+  const maxX = Math.max(...ps.map(p => p.x + p.w)) + PAD;
+  const maxY = Math.max(...ps.map(p => p.y + p.h)) + PAD;
+  const wrap = $('#canvas-wrap').getBoundingClientRect();
+  const scale = Math.min(wrap.width / maxX, wrap.height / maxY, 1.4);
+  vb = { x: 0, y: 0, w: wrap.width / scale, h: wrap.height / scale };
+  applyVB();
+}
+$('#canvas').addEventListener('wheel', e => {
+  e.preventDefault();
+  const k = e.deltaY > 0 ? 1.1 : 0.9;
+  const r = $('#canvas').getBoundingClientRect();
+  const mx = vb.x + (e.clientX - r.left) / r.width * vb.w;
+  const my = vb.y + (e.clientY - r.top) / r.height * vb.h;
+  vb = { x: mx - (mx - vb.x) * k, y: my - (my - vb.y) * k, w: vb.w * k, h: vb.h * k };
+  applyVB();
+}, { passive: false });
+let pan = null;
+$('#canvas').addEventListener('mousedown', e => { pan = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y }; $('#canvas').classList.add('panning'); });
+window.addEventListener('mousemove', e => {
+  if (!pan) return;
+  const r = $('#canvas').getBoundingClientRect();
+  vb.x = pan.vx - (e.clientX - pan.x) / r.width * vb.w;
+  vb.y = pan.vy - (e.clientY - pan.y) / r.height * vb.h;
+  applyVB();
+});
+window.addEventListener('mouseup', () => { pan = null; $('#canvas').classList.remove('panning'); });
+
+// ---------- エクスポート ----------
+$('#btn-fit').addEventListener('click', fit);
+$('#btn-svg').addEventListener('click', () => {
+  const svg = $('#canvas').cloneNode(true);
+  const style = document.createElementNS(svgNS, 'style');
+  style.textContent = `text{font-family:-apple-system,'Segoe UI','Hiragino Sans',sans-serif} .layer-band{fill:rgba(208,215,222,.18)} .ctx-label{font-size:11px;fill:#656d76;font-weight:600} .layer-label{font-size:13px;font-weight:700} .edge path{fill:none;stroke-width:1.3} .edge.import path{stroke:#8c959f} .edge.has path{stroke:#1a7f37;stroke-width:1.6} .edge.implements path{stroke:#bc4c00;stroke-dasharray:5 3;stroke-width:1.6} .edge text{font-size:9px;fill:#656d76} .dim{opacity:.12}`;
+  svg.insertBefore(style, svg.firstChild);
+  const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${state.model.name}-${state.view}.svg`;
+  a.click();
+});
+$('#btn-mermaid').addEventListener('click', () => {
+  $('#mermaid-text').value = toMermaid();
+  $('#mermaid-dialog').showModal();
+});
+$('#mermaid-copy').addEventListener('click', () => navigator.clipboard?.writeText($('#mermaid-text').value));
+
+function mmId(name) { return name.replace(/[^A-Za-z0-9_]/g, '_'); }
+// Mermaid の "..." ラベル内で構文を壊す文字をエスケープする
+function mmLabel(s) { return String(s).replace(/"/g, '#quot;').replace(/[\r\n]+/g, ' '); }
+// classDiagram のメンバー名は識別子相当のみ許可（文字列リテラルキー等を無害化）
+function mmMember(s) { return String(s).replace(/[^A-Za-z0-9_$]/g, '_'); }
+// classDiagram のエッジラベル（`: label`）は引用符・コロン・改行を除去
+function mmEdgeLabel(s) { return String(s).replace(/["':\r\n]+/g, ' ').trim(); }
+function toMermaid() {
+  const nodes = visibleNodes().filter(n => state.positions.has(n.id));
+  const edges = visibleEdges(nodes);
+  const byName = id => id.split('#')[1];
+  if (state.view === 'er') {
+    const lines = ['```mermaid', 'classDiagram'];
+    for (const n of nodes) {
+      lines.push(`  class ${mmId(n.name)} {`);
+      lines.push(`    <<${n.kind}>>`);
+      for (const p of n.props.filter(p => !p.method).slice(0, 10)) lines.push(`    +${p.type.replace(/[^A-Za-z0-9_\[\] |]/g, '')} ${mmMember(p.name)}`);
+      for (const m of n.methods.slice(0, 10)) lines.push(`    +${mmMember(m)}()`);
+      lines.push('  }');
+    }
+    for (const e of edges) {
+      const arrow = e.kind === 'implements' ? '..|>' : e.kind === 'has' ? '-->' : '..>';
+      lines.push(`  ${mmId(byName(e.from))} ${arrow} ${mmId(byName(e.to))}${e.label ? ` : ${mmEdgeLabel(e.label)}` : ''}`);
+    }
+    lines.push('```');
+    return lines.join('\n');
+  }
+  const lines = ['```mermaid', 'flowchart LR'];
+  for (const layer of LAYER_ORDER) {
+    const ln = nodes.filter(n => n.layer === layer);
+    if (ln.length === 0) continue;
+    lines.push(`  subgraph ${layer}["${LAYER_LABELS[layer] ?? layer}"]`);
+    const byCtx = new Map();
+    for (const n of ln) {
+      const c = n.context ?? '';
+      if (!byCtx.has(c)) byCtx.set(c, []);
+      byCtx.get(c).push(n);
+    }
+    for (const [ctx, cn] of [...byCtx.entries()].sort()) {
+      if (ctx) lines.push(`    subgraph ${layer}_${mmId(ctx)}["${mmLabel(ctx)}"]`);
+      for (const n of cn) lines.push(`    ${ctx ? '  ' : ''}${mmId(n.name)}["${mmLabel(n.name)}"]`);
+      if (ctx) lines.push('    end');
+    }
+    lines.push('  end');
+  }
+  for (const e of edges) {
+    const arrow = e.kind === 'implements' ? '-.->|implements|' : '-->';
+    lines.push(`  ${mmId(byName(e.from))} ${arrow} ${mmId(byName(e.to))}`);
+  }
+  lines.push('```');
+  return lines.join('\n');
+}
+
+// ---------- タブ ----------
+$('#tab-layer').addEventListener('click', () => switchView('layer'));
+$('#tab-er').addEventListener('click', () => switchView('er'));
+function switchView(v) {
+  state.view = v;
+  $('#tab-layer').classList.toggle('active', v === 'layer');
+  $('#tab-er').classList.toggle('active', v === 'er');
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
